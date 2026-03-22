@@ -192,3 +192,28 @@ async function enviarWhatsAppPublico() {
         btnEnviar.disabled = false;
     }
 }
+// LÓGICA DE LA CUENTA ATRÁS (Hacia el 15 de Mayo de 2026)
+function actualizarCuentaAtras() {
+    const fechaGraduacion = new Date('May 15, 2026 20:00:00').getTime();
+    const ahora = new Date().getTime();
+    const diferencia = fechaGraduacion - ahora;
+
+    if (diferencia <= 0) {
+        document.getElementById('countdown').innerHTML = "¡ES EL DÍA DE LA GRADUACIÓN! 🎉";
+        return;
+    }
+
+    const d = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+    document.getElementById('days').innerText = d < 10 ? '0' + d : d;
+    document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
+    document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
+    document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+}
+
+// Actualizar cada segundo
+setInterval(actualizarCuentaAtras, 1000);
+actualizarCuentaAtras(); // Carga inicial
