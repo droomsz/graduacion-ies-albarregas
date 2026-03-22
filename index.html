@@ -22,7 +22,7 @@
                 <div><span id="seconds">00</span><p>Segundos</p></div>
             </div>
             <p style="margin-top: 15px; font-weight: bold; color: #d4af37;">📍 Celebración en: MalaMadre (C. Holguín, 32)</p>
-            <a href="https://maps.app.goo.gl/34zC9F7f9kC8k8Uv8" target="_blank" class="btn-location">📍 ¿Cómo llegar?</a>
+            <a href="https://www.google.com/maps/search/?api=1&query=MalaMadre+The+Club+Merida&query_place_id=ChIJq6rWtcEmFA0RQYX-LqiF8_8" target="_blank" class="btn-location">📍 ¿Cómo llegar?</a>
         </section>
 
         <section class="section-card">
@@ -34,29 +34,28 @@
             <div id="resultado" class="resultado-container"></div>
         </section>
 
-        <section class="gallery-container">
-            <h2>📸 Galería de Recuerdos</h2>
-            <div class="gallery-grid">
-                <div class="photo-card"><img src="https://via.placeholder.com/300x300/2a2a2a/d4af37?text=Foto+Clase" alt="Recuerdo"></div>
-                <div class="photo-card"><img src="https://via.placeholder.com/300x300/2a2a2a/d4af37?text=Excursión" alt="Recuerdo"></div>
-                <div class="photo-card"><img src="https://via.placeholder.com/300x300/2a2a2a/d4af37?text=Graduación" alt="Recuerdo"></div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+
+        <section class="whatsapp-section">
+            <h2><span>📱</span> Solicitud de acceso</h2>
+            <p>Verifica tu identidad en la lista oficial para poder dejar tu número.</p>
+            
+            <div id="wsPaso1" class="whatsapp-inputs">
+                <input type="text" id="wsNombreVerificar" placeholder="Tu nombre y apellidos...">
+                <button onclick="verificarNombreWhatsApp()" class="btn-whatsapp" id="btnVerificarWs">Verificar Identidad</button>
+                <p id="wsMsgPaso1" class="whatsapp-status"></p>
+            </div>
+
+            <div id="wsPaso2" class="whatsapp-inputs" style="display: none; margin-top: 15px; border-top: 1px dashed #444; padding-top: 15px;">
+                <p id="wsNombreConfirmado" style="color: #25D366; font-weight: bold; margin-bottom: 5px;"></p>
+                <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 10px;">Identidad confirmada. Ahora ingresa tu teléfono:</p>
+                
+                <input type="tel" id="wsTelefonoPúblico" placeholder="Número de teléfono (Ej: 600123456)">
+                <button onclick="enviarWhatsAppPublico()" class="btn-whatsapp" id="btnEnviarWs">Guardar mi número</button>
+                <p id="wsStatusMsgPúblico" class="whatsapp-status"></p>
             </div>
         </section>
 
-        <section class="whatsapp-section">
-            <h2>📱 ¿Eres Invitado?</h2>
-            <p>Verifica tu nombre para pedir acceso al grupo.</p>
-            <div id="wsPaso1" class="whatsapp-inputs">
-                <input type="text" id="wsNombreVerificar" placeholder="Nombre completo...">
-                <button onclick="verificarNombreWhatsApp()" class="btn-whatsapp">Verificar</button>
-            </div>
-            <div id="wsPaso2" class="whatsapp-inputs" style="display: none; margin-top: 15px;">
-                <p id="wsNombreConfirmado" style="color: #25D366; font-weight: bold;"></p>
-                <input type="tel" id="wsTelefonoPúblico" placeholder="Número de teléfono...">
-                <button onclick="enviarWhatsAppPublico()" class="btn-whatsapp">Enviar a WhatsApp</button>
-            </div>
-            <p id="wsStatusMsgPúblico" class="whatsapp-status"></p>
-        </section>
     </div>
     <script src="app.js"></script>
 </body>
