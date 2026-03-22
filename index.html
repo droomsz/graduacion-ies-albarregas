@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graduación IES Albarregas '24 | 2º Bachillerato</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos específicos para la nueva sección apartada de WhatsApp */
+        .whatsapp-section {
+            background-color: #1e1e1e; /* Color base oscuro */
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-top: 5px solid #25D366; /* Borde verde de WhatsApp */
+            text-align: center;
+        }
+        
+        .whatsapp-section h2 {
+            color: #25D366;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .whatsapp-section p {
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .whatsapp-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .whatsapp-inputs input {
+            width: 100%;
+            max-width: 350px; /* Ancho máximo para que no se estire mucho */
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+        }
+        
+        .btn-whatsapp {
+            background-color: #25D366;
+            color: #121212;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+        
+        .btn-whatsapp:hover {
+            background-color: #1eb857;
+        }
+        
+        .btn-whatsapp:active {
+            transform: translateY(1px);
+        }
+        
+        .whatsapp-status {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            display: none; /* Oculto al inicio */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Graduación IES Albarregas</h1>
+            <p>2º de Bachillerato | IES Albarregas '24</p>
+        </header>
+
+        <main>
+            <section class="section-container">
+                <div class="search-box">
+                    <p style="margin-bottom: 15px; color:#aaa;">Ingresa tu nombre para verificar tu pago y entrada.</p>
+                    <input type="text" id="nombreAlumno" placeholder="Introduce tu nombre o apellidos...">
+                    <button onclick="buscarAlumno()">Buscar Pago</button>
+                </div>
+                <div id="resultado" class="resultado-container"></div>
+            </section>
+            
+            <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+<section class="whatsapp-section">
+                <h2>📱 Solicitud de acceso a WhatsApp</h2>
+                <p>Verifica tu identidad en la lista oficial para poder dejar tu número.</p>
+                
+                <div id="wsPaso1" class="whatsapp-inputs">
+                    <input type="text" id="wsNombreVerificar" placeholder="Tu nombre y apellidos...">
+                    <button onclick="verificarNombreWhatsApp()" class="btn-whatsapp" id="btnVerificarWs">Verificar Identidad</button>
+                    <p id="wsMsgPaso1" class="whatsapp-status"></p>
+                </div>
+
+                <div id="wsPaso2" class="whatsapp-inputs" style="display: none; margin-top: 15px; border-top: 1px dashed #444; padding-top: 15px;">
+                    <p id="wsNombreConfirmado" style="color: #25D366; font-weight: bold; margin-bottom: 5px;"></p>
+                    <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 10px;">Identidad confirmada. Ahora ingresa tu teléfono:</p>
+                    
+                    <input type="tel" id="wsTelefonoPúblico" placeholder="Número de teléfono (Ej: 600123456)">
+                    <button onclick="enviarWhatsAppPublico()" class="btn-whatsapp" id="btnEnviarWs">Guardar mi número</button>
+                    <p id="wsStatusMsgPúblico" class="whatsapp-status"></p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
