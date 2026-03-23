@@ -1,8 +1,40 @@
-// Tu enlace oficial de la base de datos
+// ==========================================
+// CONFIGURACIÓN GLOBAL
+// ==========================================
+// Tu enlace oficial de la base de datos (Google Apps Script)
 const API_URL = 'https://script.google.com/macros/s/AKfycbyrDRD553jRvrBqagafMSnjhUOXYzi5Pvg0qIGfjf-_NmxtPUcVzSOuGrqiimPt-xSz/exec';
 
+// Variable global para el proceso de WhatsApp
+let nombreVerificadoParaWhatsApp = "";
+
 // ==========================================
-// 1. BUSCADOR PÚBLICO (ALUMNOS E INVITADOS)
+// 1. RASTREADOR DE VISITAS (TRÁFICO AUTOMÁTICO)
+// ==========================================
+async function registrarVisita() {
+    try {
+        // Obtenemos la IP de forma silenciosa al cargar la página
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        
+        const datosVisita = {
+            action: "log_visit",
+            ip: ipData.ip,
+            device: navigator.userAgent
+        };
+
+        // Enviamos al Excel sin interrumpir al usuario
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(datosVisita)
+        });
+
+    } catch (error) {
+        console.warn("No se pudo registrar la visita automática.");
+    }
+}
+
+// ==========================================
+// 2. BUSCADOR DE PAGOS Y LOGS DE BÚSQUEDA
 // ==========================================
 async function buscarAlumno() {
     const inputOriginal = document.getElementById('nombreAlumno').value.trim();
@@ -14,12 +46,22 @@ async function buscarAlumno() {
         return;
     }
 
-    resultadoDiv.innerHTML = '<p style="color: #a0a0a0;">Buscando en la lista de graduación...</p>';
+    resultadoDiv.innerHTML = '<p style="color: #a0a0a0;">Buscando en la lista oficial...</p>';
 
     try {
         const respuesta = await fetch(API_URL);
         const datos = await respuesta.json();
 
+        // Obtener IP para el log de búsqueda
+        let userIP = "Desconocida";
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            userIP = ipData.ip;
+        } catch (e) { console.warn("Error obteniendo IP para búsqueda"); }
+        
+        const userDevice = navigator.userAgent;
+        let estadoBusqueda = "No encontrado";
         let encontrado = false;
         let htmlResultado = '';
 
@@ -29,254 +71,194 @@ async function buscarAlumno() {
             const inv2 = fila["INVITADO 2"] ? fila["INVITADO 2"].toString() : "";
             const inv3 = fila["INVITADO 3"] ? fila["INVITADO 3"].toString() : "";
 
+            // Lógica para Alumnos
             if (nombreAlumno.toLowerCase().includes(inputBuscar) && nombreAlumno.trim() !== "") {
                 encontrado = true;
-                const pagadoAlumno = fila["PAGADO ALUMNO"] === true ? '<span class="estado-pagado">✅ Pagada</span>' : '<span class="estado-pendiente">❌ Pendiente</span>';
-                const formatearInvitado = (nombreInv, estadoPago) => {
-                    if (!nombreInv || nombreInv.trim() === '') return ''; 
-                    const estado = estadoPago === true ? '<span class="estado-pagado">✅ Pagado</span>' : '<span class="estado-pendiente">❌ Pendiente</span>';
-                    return `<li style="margin-bottom: 5px;"><strong>${nombreInv}:</strong> ${estado}</li>`;
-                };
-
-                const htmlInv1 = formatearInvitado(inv1, fila["PAGADO INV 1"]);
-                const htmlInv2 = formatearInvitado(inv2, fila["PAGADO INV 2"]);
-                const htmlInv3 = formatearInvitado(inv3, fila["PAGADO INV 3"]);
-
-                let htmlInvitados = '';
-                if (htmlInv1 || htmlInv2 || htmlInv3) {
-                    htmlInvitados = `<div style="margin-top: 15px; background: #333; padding: 10px; border-radius: 8px;"><p style="margin-bottom: 10px; color: #d4af37;"><strong>Tus Invitados Confirmados:</strong></p><ul style="list-style-type: none;">${htmlInv1}${htmlInv2}${htmlInv3}</ul></div>`;
-                }
-
-                htmlResultado = `<div class="card"><h3>🎓 ${nombreAlumno} - ${fila["CURSO"] || ""}</h3><p style="font-size: 1.1rem; margin-top: 10px;"><strong>Tu entrada:</strong> ${pagadoAlumno}</p>${htmlInvitados}</div>`;
+                estadoBusqueda = "Encontrado (Alumno)";
+                const pagadoAlumno = fila["PAGADO ALUMNO"] === true ? '✅ Pagada' : '❌ Pendiente';
+                
+                htmlResultado = `
+                    <div class="card">
+                        <h3>🎓 ${nombreAlumno}</h3>
+                        <p style="margin-top:10px;"><strong>Tu entrada:</strong> <span class="${fila["PAGADO ALUMNO"] === true ? 'estado-pagado' : 'estado-pendiente'}">${pagadoAlumno}</span></p>
+                    </div>`;
                 break;
             }
 
-            const generarTarjetaInvitado = (nombreInvitado, pagoInvitado, otrosInvitadosArray) => {
-                const estadoPago = pagoInvitado === true ? '<span class="estado-pagado">✅ Pagada</span>' : '<span class="estado-pendiente">❌ Pendiente</span>';
-                const otrosReales = otrosInvitadosArray.filter(inv => inv && inv.trim() !== '');
-                let otrosHtml = '';
-                if (otrosReales.length > 0) {
-                    const listaOtros = otrosReales.map(inv => `<li style="margin-bottom: 5px; color: #ccc;">• ${inv}</li>`).join('');
-                    otrosHtml = `<div style="margin-top: 15px; background: #333; padding: 10px; border-radius: 8px;"><p style="margin-bottom: 5px; color: #d4af37;"><strong>Sus otros invitados son:</strong></p><ul style="list-style-type: none;">${listaOtros}</ul></div>`;
+            // Lógica para Invitados
+            const checkInv = (nombre, pago, otros) => {
+                if (nombre.toLowerCase().includes(inputBuscar) && nombre.trim() !== "") {
+                    encontrado = true;
+                    estadoBusqueda = `Encontrado (Invitado de ${nombreAlumno})`;
+                    const pagado = pago === true ? '✅ Pagada' : '❌ Pendiente';
+                    htmlResultado = `
+                        <div class="card" style="border-left: 5px solid #25D366;">
+                            <h3>🎟️ Invitado: ${nombre}</h3>
+                            <p>Te invita: <span style="color:#d4af37;">${nombreAlumno}</span></p>
+                            <p style="margin-top:10px;"><strong>Invitación:</strong> <span class="${pago === true ? 'estado-pagado' : 'estado-pendiente'}">${pagado}</span></p>
+                        </div>`;
+                    return true;
                 }
-                return `<div class="card" style="border-left: 5px solid #4caf50;"><h3>🎟️ Estás Invitado: <span style="color: white;">${nombreInvitado}</span></h3><p style="font-size: 1.1rem; margin-top: 10px;"><strong>Tu invitación está:</strong> ${estadoPago}</p><p style="font-size: 1.05rem; margin-top: 10px;"><strong>Te ha invitado:</strong> <span style="color: #d4af37;">${nombreAlumno}</span></p>${otrosHtml}</div>`;
+                return false;
             };
 
-            if (inv1.toLowerCase().includes(inputBuscar) && inv1.trim() !== "") { encontrado = true; htmlResultado = generarTarjetaInvitado(inv1, fila["PAGADO INV 1"], [inv2, inv3]); break; } 
-            else if (inv2.toLowerCase().includes(inputBuscar) && inv2.trim() !== "") { encontrado = true; htmlResultado = generarTarjetaInvitado(inv2, fila["PAGADO INV 2"], [inv1, inv3]); break; } 
-            else if (inv3.toLowerCase().includes(inputBuscar) && inv3.trim() !== "") { encontrado = true; htmlResultado = generarTarjetaInvitado(inv3, fila["PAGADO INV 3"], [inv1, inv2]); break; }
+            if (checkInv(inv1, fila["PAGADO INV 1"], [inv2, inv3])) break;
+            if (checkInv(inv2, fila["PAGADO INV 2"], [inv1, inv3])) break;
+            if (checkInv(inv3, fila["PAGADO INV 3"], [inv1, inv2])) break;
         }
+
+        // Enviar el LOG de búsqueda al Excel
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "log_search",
+                nombreBuscado: inputOriginal,
+                ip: userIP,
+                device: userDevice,
+                resultado: estadoBusqueda
+            })
+        });
 
         if (encontrado) resultadoDiv.innerHTML = htmlResultado;
-        else resultadoDiv.innerHTML = '<p style="color: #f44336;">No hemos encontrado a nadie con ese nombre exacto en la lista. Revisa si está bien escrito.</p>';
+        else resultadoDiv.innerHTML = '<p style="color: #f44336;">No encontrado. Prueba con nombre y primer apellido.</p>';
+
     } catch (error) {
-        resultadoDiv.innerHTML = '<p style="color: #f44336;">Hubo un error de conexión al leer la base de datos.</p>';
+        resultadoDiv.innerHTML = '<p style="color: #f44336;">Error de conexión.</p>';
     }
 }
 
 // ==========================================
-// 2. SISTEMA DE WHATSAPP EN 2 PASOS
+// 3. REGISTRO WHATSAPP (CON FILTRO E IP)
 // ==========================================
-
-// Variable para guardar el nombre real del Excel una vez verificado
-let nombreVerificadoParaWhatsApp = "";
-
-// PASO 1: Verificar si la persona existe en el Excel
 async function verificarNombreWhatsApp() {
-    const inputOriginal = document.getElementById('wsNombreVerificar').value.trim();
-    const inputBuscar = inputOriginal.toLowerCase();
-    const msgPaso1 = document.getElementById('wsMsgPaso1');
-    const btnVerificar = document.getElementById('btnVerificarWs');
+    const input = document.getElementById('wsNombreVerificar').value.trim();
+    const msg = document.getElementById('wsMsgPaso1');
+    if (!input) return;
 
-    if (inputBuscar === '') {
-        msgPaso1.style.display = 'block';
-        msgPaso1.style.color = '#f44336';
-        msgPaso1.innerText = 'Por favor, escribe tu nombre para buscarte.';
-        return;
-    }
-
-    msgPaso1.style.display = 'block';
-    msgPaso1.style.color = '#a0a0a0';
-    msgPaso1.innerText = 'Verificando en la lista oficial...';
-    btnVerificar.disabled = true;
-
+    msg.style.display = 'block';
+    msg.innerText = "Verificando en la lista...";
+    
     try {
-        const respuesta = await fetch(API_URL);
-        const datos = await respuesta.json();
-        let nombreOficialEncontrado = null;
+        const res = await fetch(API_URL);
+        const datos = await res.json();
+        let oficial = null;
 
-        // Buscamos si es alumno o si es invitado
-        for (const fila of datos) {
-            const nombreAlumno = fila["NOMBRE"] ? fila["NOMBRE"].toString() : "";
-            const inv1 = fila["INVITADO 1"] ? fila["INVITADO 1"].toString() : "";
-            const inv2 = fila["INVITADO 2"] ? fila["INVITADO 2"].toString() : "";
-            const inv3 = fila["INVITADO 3"] ? fila["INVITADO 3"].toString() : "";
-
-            if (nombreAlumno.toLowerCase().includes(inputBuscar) && nombreAlumno.trim() !== "") {
-                nombreOficialEncontrado = nombreAlumno; break;
-            } else if (inv1.toLowerCase().includes(inputBuscar) && inv1.trim() !== "") {
-                nombreOficialEncontrado = inv1; break;
-            } else if (inv2.toLowerCase().includes(inputBuscar) && inv2.trim() !== "") {
-                nombreOficialEncontrado = inv2; break;
-            } else if (inv3.toLowerCase().includes(inputBuscar) && inv3.trim() !== "") {
-                nombreOficialEncontrado = inv3; break;
-            }
+        for (const f of datos) {
+            if (f["NOMBRE"]?.toLowerCase().includes(input.toLowerCase())) { oficial = f["NOMBRE"]; break; }
+            if (f["INVITADO 1"]?.toLowerCase().includes(input.toLowerCase())) { oficial = f["INVITADO 1"]; break; }
+            if (f["INVITADO 2"]?.toLowerCase().includes(input.toLowerCase())) { oficial = f["INVITADO 2"]; break; }
+            if (f["INVITADO 3"]?.toLowerCase().includes(input.toLowerCase())) { oficial = f["INVITADO 3"]; break; }
         }
 
-        if (nombreOficialEncontrado) {
-            // ÉXITO: Está en la lista. Guardamos su nombre oficial y mostramos el Paso 2
-            nombreVerificadoParaWhatsApp = nombreOficialEncontrado;
+        if (oficial) {
+            nombreVerificadoParaWhatsApp = oficial;
             document.getElementById('wsPaso1').style.display = 'none';
             document.getElementById('wsPaso2').style.display = 'flex';
-            document.getElementById('wsNombreConfirmado').innerText = `✅ Hola, ${nombreOficialEncontrado}`;
+            document.getElementById('wsNombreConfirmado').innerText = `✅ Identidad: ${oficial}`;
         } else {
-            // ERROR: No está en la lista
-            msgPaso1.style.color = '#f44336';
-            msgPaso1.innerText = 'No estás en la lista. Prueba a buscar solo tu nombre y tu primer apellido.';
-            btnVerificar.disabled = false;
+            msg.style.color = "#f44336";
+            msg.innerText = "No apareces en la lista de invitados.";
         }
-
-    } catch (error) {
-        msgPaso1.style.color = '#f44336';
-        msgPaso1.innerText = 'Error de conexión. Inténtalo de nuevo.';
-        btnVerificar.disabled = false;
-    }
+    } catch (e) { msg.innerText = "Error al verificar."; }
 }
 
-// PASO 2: Enviar el teléfono junto con el nombre verificado
 async function enviarWhatsAppPublico() {
-    const inputTelefono = document.getElementById('wsTelefonoPúblico');
-    const mensajeStatus = document.getElementById('wsStatusMsgPúblico');
-    const btnEnviar = document.getElementById('btnEnviarWs');
-    
-    const telefono = inputTelefono.value.trim();
+    const tlf = document.getElementById('wsTelefonoPúblico').value.trim();
+    const status = document.getElementById('wsStatusMsgPúblico');
+    if (!tlf) return;
 
-    if (telefono === '') {
-        mensajeStatus.style.display = 'block';
-        mensajeStatus.style.color = '#f44336';
-        mensajeStatus.innerText = 'Por favor, rellena tu teléfono.';
-        return;
-    }
-
-    mensajeStatus.style.display = 'block';
-    mensajeStatus.style.color = '#a0a0a0';
-    mensajeStatus.innerText = 'Guardando número en la base de datos...';
-    btnEnviar.disabled = true;
-
-    // Enviamos el nombre que verificamos en el Paso 1 (así no pueden hacer trampas cambiándolo)
-    const datosPOST = {
-        action: "request_whatsapp",
-        nombre: nombreVerificadoParaWhatsApp,
-        telefono: telefono
-    };
+    status.style.display = "block";
+    status.innerText = "Registrando tu número...";
 
     try {
-        const respuesta = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(datosPOST)
-        });
-        const resultado = await respuesta.json();
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        
+        const datos = {
+            action: "request_whatsapp",
+            nombre: nombreVerificadoParaWhatsApp,
+            telefono: tlf,
+            ip: ipData.ip,
+            device: navigator.userAgent
+        };
 
-        if (resultado.status === 'success') {
-            mensajeStatus.style.color = '#25D366';
-            mensajeStatus.innerText = '¡Solicitud enviada con éxito! Serás añadido pronto al grupo.';
-            inputTelefono.disabled = true; // Bloqueamos la casilla para evitar envíos dobles
-        } else {
-            mensajeStatus.style.color = '#f44336';
-            mensajeStatus.innerText = 'Hubo un error al guardar tu número en el Excel.';
-            btnEnviar.disabled = false;
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(datos) });
+        const resJson = await res.json();
+
+        if (resJson.status === 'success') {
+            status.style.color = "#25D366";
+            status.innerText = "¡Listo! Te añadiremos pronto al grupo.";
+            document.getElementById('btnEnviarWs').disabled = true;
         }
-    } catch (error) {
-        mensajeStatus.style.color = '#f44336';
-        mensajeStatus.innerText = 'Error de conexión. Inténtalo más tarde.';
-        btnEnviar.disabled = false;
-    }
-}
-// LÓGICA DE LA CUENTA ATRÁS (Hacia el 15 de Mayo de 2026)
-function actualizarCuentaAtras() {
-    const fechaGraduacion = new Date('May 15, 2026 20:00:00').getTime();
-    const ahora = new Date().getTime();
-    const diferencia = fechaGraduacion - ahora;
-
-    if (diferencia <= 0) {
-        document.getElementById('countdown').innerHTML = "¡ES EL DÍA DE LA GRADUACIÓN! 🎉";
-        return;
-    }
-
-    const d = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const m = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-    const s = Math.floor((diferencia % (1000 * 60)) / 1000);
-
-    document.getElementById('days').innerText = d < 10 ? '0' + d : d;
-    document.getElementById('hours').innerText = h < 10 ? '0' + h : h;
-    document.getElementById('minutes').innerText = m < 10 ? '0' + m : m;
-    document.getElementById('seconds').innerText = s < 10 ? '0' + s : s;
+    } catch (e) { status.innerText = "Error al guardar el número."; }
 }
 
-// Actualizar cada segundo
-setInterval(actualizarCuentaAtras, 1000);
-actualizarCuentaAtras(); // Carga inicial
+// ==========================================
+// 4. ESTADÍSTICAS DIVIDIDAS (CONTADORES)
+// ==========================================
 async function cargarContadoresTotales() {
     try {
         const respuesta = await fetch(API_URL);
         const datos = await respuesta.json();
 
-        // Variables de conteo
-        let alumnosTotales = 0;
-        let alumnosPagados = 0;
-        let invitadosTotales = 0;
-        let invitadosPagados = 0;
+        let alumnosTotales = 0, alumnosPagados = 0;
+        let invitadosTotales = 0, invitadosPagados = 0;
 
         datos.forEach(fila => {
-            // 1. CONTEO DE ALUMNOS
-            if (fila["NOMBRE"] && fila["NOMBRE"].toString().trim() !== "") {
+            if (fila["NOMBRE"]?.trim()) {
                 alumnosTotales++;
-                if (fila["PAGADO ALUMNO"] === true) {
-                    alumnosPagados++;
-                }
+                if (fila["PAGADO ALUMNO"] === true) alumnosPagados++;
             }
-            
-            // 2. CONTEO DE INVITADOS
-            const chequearInv = (num) => {
-                const nombre = fila[`INVITADO ${num}`];
-                const pagado = fila[`PAGADO INV ${num}`];
-                if (nombre && nombre.toString().trim() !== "") {
+            [1, 2, 3].forEach(n => {
+                const inv = fila[`INVITADO ${n}`];
+                if (inv && inv.toString().trim() !== "") {
                     invitadosTotales++;
-                    if (pagado === true) {
-                        invitadosPagados++;
-                    }
+                    if (fila[`PAGADO INV ${n}`] === true) invitadosPagados++;
                 }
-            };
-
-            chequearInv(1);
-            chequearInv(2);
-            chequearInv(3);
+            });
         });
 
-        // --- CÁLCULOS FINALES ---
-        
         // Bloque Pagados (Confirmados)
-        const pagadosPersonasTotal = alumnosPagados + invitadosPagados;
-        const pagadosInvitadosTotal = invitadosPagados;
+        document.getElementById('pagados-personas-total').innerText = alumnosPagados + invitadosPagados;
+        document.getElementById('pagados-invitados-total').innerText = invitadosPagados;
 
         // Bloque General (Lista completa)
-        const generalPersonasTotal = alumnosTotales + invitadosTotales;
-        const generalInvitadosTotal = invitadosTotales;
+        document.getElementById('general-personas-total').innerText = alumnosTotales + invitadosTotales;
+        document.getElementById('general-invitados-total').innerText = invitadosTotales;
 
-        // --- INYECTAR EN EL HTML ---
-        
-        // Pagados
-        document.getElementById('pagados-personas-total').innerText = pagadosPersonasTotal;
-        document.getElementById('pagados-invitados-total').innerText = pagadosInvitadosTotal;
-
-        // General
-        document.getElementById('general-personas-total').innerText = generalPersonasTotal;
-        document.getElementById('general-invitados-total').innerText = generalInvitadosTotal;
-
-    } catch (error) {
-        console.error("Error en las estadísticas:", error);
-    }
+    } catch (e) { console.error("Error cargando estadísticas"); }
 }
 
-window.addEventListener('DOMContentLoaded', cargarContadoresTotales);
+// ==========================================
+// 5. CUENTA ATRÁS PARA EL 15 DE MAYO 2026
+// ==========================================
+function actualizarCuentaAtras() {
+    const fechaEvento = new Date('May 15, 2026 23:45:00').getTime();
+    const ahora = new Date().getTime();
+    const diff = fechaEvento - ahora;
+
+    if (diff <= 0) {
+        document.getElementById('countdown').innerHTML = "¡LA GRADUACIÓN HA COMENZADO! 🎉";
+        return;
+    }
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById('days').innerText = d.toString().padStart(2, '0');
+    document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+    document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
+    document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+}
+
+// ==========================================
+// INICIALIZACIÓN AL CARGAR LA PÁGINA
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+    registrarVisita();           // Registra la entrada (IP/Device)
+    cargarContadoresTotales();    // Calcula estadísticas del Excel
+    setInterval(actualizarCuentaAtras, 1000); // Inicia el reloj
+    actualizarCuentaAtras();
+});
