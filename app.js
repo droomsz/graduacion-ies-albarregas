@@ -1,40 +1,30 @@
 // ==========================================
 // CONFIGURACIÓN GLOBAL
 // ==========================================
-// Tu enlace oficial de la base de datos (Google Apps Script)
 const API_URL = 'https://script.google.com/macros/s/AKfycbyrDRD553jRvrBqagafMSnjhUOXYzi5Pvg0qIGfjf-_NmxtPUcVzSOuGrqiimPt-xSz/exec';
-
-// Variable global para el proceso de WhatsApp
 let nombreVerificadoParaWhatsApp = "";
 
 // ==========================================
-// 1. RASTREADOR DE VISITAS (TRÁFICO AUTOMÁTICO)
+// 1. RASTREADOR DE VISITAS (A PRUEBA DE BLOQUEADORES)
 // ==========================================
 async function registrarVisita() {
+    let userIP = "Desconocida / Oculta";
     try {
-        // Obtenemos la IP de forma silenciosa al cargar la página
         const ipRes = await fetch('https://api.ipify.org?format=json');
         const ipData = await ipRes.json();
-        
-        const datosVisita = {
-            action: "log_visit",
-            ip: ipData.ip,
-            device: navigator.userAgent
-        };
-
-        // Enviamos al Excel sin interrumpir al usuario
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(datosVisita)
-        });
-
+        userIP = ipData.ip;
     } catch (error) {
-        console.warn("No se pudo registrar la visita automática.");
+        console.warn("IP bloqueada por privacidad, pero registramos la entrada.");
     }
+
+    try {
+        const datosVisita = { action: "log_visit", ip: userIP, device: navigator.userAgent };
+        fetch(API_URL, { method: 'POST', body: JSON.stringify(datosVisita) });
+    } catch (error) { console.warn("No se pudo conectar con el Excel de Visitas."); }
 }
 
 // ==========================================
-// 2. BUSCADOR DE PAGOS Y LOGS DE BÚSQUEDA
+// 2. BUSCADOR DE ALUMNOS Y PAGOS (ANTI-CACHÉ)
 // ==========================================
 async function buscarAlumno() {
     const inputOriginal = document.getElementById('nombreAlumno').value.trim();
@@ -49,16 +39,16 @@ async function buscarAlumno() {
     resultadoDiv.innerHTML = '<p style="color: #a0a0a0;">Buscando en la lista oficial...</p>';
 
     try {
-        const respuesta = await fetch(API_URL);
+        const fetchUrl = API_URL + "?nocache=" + new Date().getTime();
+        const respuesta = await fetch(fetchUrl);
         const datos = await respuesta.json();
 
-        // Obtener IP para el log de búsqueda
         let userIP = "Desconocida";
         try {
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const ipData = await ipRes.json();
             userIP = ipData.ip;
-        } catch (e) { console.warn("Error obteniendo IP para búsqueda"); }
+        } catch (e) { console.warn("Error IP en búsqueda"); }
         
         const userDevice = navigator.userAgent;
         let estadoBusqueda = "No encontrado";
@@ -71,12 +61,10 @@ async function buscarAlumno() {
             const inv2 = fila["INVITADO 2"] ? fila["INVITADO 2"].toString() : "";
             const inv3 = fila["INVITADO 3"] ? fila["INVITADO 3"].toString() : "";
 
-            // Lógica para Alumnos
             if (nombreAlumno.toLowerCase().includes(inputBuscar) && nombreAlumno.trim() !== "") {
                 encontrado = true;
                 estadoBusqueda = "Encontrado (Alumno)";
                 const pagadoAlumno = fila["PAGADO ALUMNO"] === true ? '✅ Pagada' : '❌ Pendiente';
-                
                 htmlResultado = `
                     <div class="card">
                         <h3>🎓 ${nombreAlumno}</h3>
@@ -85,7 +73,6 @@ async function buscarAlumno() {
                 break;
             }
 
-            // Lógica para Invitados
             const checkInv = (nombre, pago, otros) => {
                 if (nombre.toLowerCase().includes(inputBuscar) && nombre.trim() !== "") {
                     encontrado = true;
@@ -107,16 +94,9 @@ async function buscarAlumno() {
             if (checkInv(inv3, fila["PAGADO INV 3"], [inv1, inv2])) break;
         }
 
-        // Enviar el LOG de búsqueda al Excel
         fetch(API_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: "log_search",
-                nombreBuscado: inputOriginal,
-                ip: userIP,
-                device: userDevice,
-                resultado: estadoBusqueda
-            })
+            body: JSON.stringify({ action: "log_search", nombreBuscado: inputOriginal, ip: userIP, device: userDevice, resultado: estadoBusqueda })
         });
 
         if (encontrado) resultadoDiv.innerHTML = htmlResultado;
@@ -128,7 +108,7 @@ async function buscarAlumno() {
 }
 
 // ==========================================
-// 3. REGISTRO WHATSAPP (CON FILTRO E IP)
+// 3. SISTEMA WHATSAPP
 // ==========================================
 async function verificarNombreWhatsApp() {
     const input = document.getElementById('wsNombreVerificar').value.trim();
@@ -139,7 +119,8 @@ async function verificarNombreWhatsApp() {
     msg.innerText = "Verificando en la lista...";
     
     try {
-        const res = await fetch(API_URL);
+        const fetchUrl = API_URL + "?nocache=" + new Date().getTime();
+        const res = await fetch(fetchUrl);
         const datos = await res.json();
         let oficial = null;
 
@@ -171,17 +152,14 @@ async function enviarWhatsAppPublico() {
     status.innerText = "Registrando tu número...";
 
     try {
-        const ipRes = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipRes.json();
+        let userIP = "Desconocida";
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            userIP = ipData.ip;
+        } catch(e) {}
         
-        const datos = {
-            action: "request_whatsapp",
-            nombre: nombreVerificadoParaWhatsApp,
-            telefono: tlf,
-            ip: ipData.ip,
-            device: navigator.userAgent
-        };
-
+        const datos = { action: "request_whatsapp", nombre: nombreVerificadoParaWhatsApp, telefono: tlf, ip: userIP, device: navigator.userAgent };
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(datos) });
         const resJson = await res.json();
 
@@ -194,11 +172,12 @@ async function enviarWhatsAppPublico() {
 }
 
 // ==========================================
-// 4. ESTADÍSTICAS DIVIDIDAS (CONTADORES)
+// 4. ESTADÍSTICAS DEL PIE DE PÁGINA
 // ==========================================
 async function cargarContadoresTotales() {
     try {
-        const respuesta = await fetch(API_URL);
+        const fetchUrl = API_URL + "?nocache=" + new Date().getTime();
+        const respuesta = await fetch(fetchUrl);
         const datos = await respuesta.json();
 
         let alumnosTotales = 0, alumnosPagados = 0;
@@ -218,11 +197,8 @@ async function cargarContadoresTotales() {
             });
         });
 
-        // Bloque Pagados (Confirmados)
         document.getElementById('pagados-personas-total').innerText = alumnosPagados + invitadosPagados;
         document.getElementById('pagados-invitados-total').innerText = invitadosPagados;
-
-        // Bloque General (Lista completa)
         document.getElementById('general-personas-total').innerText = alumnosTotales + invitadosTotales;
         document.getElementById('general-invitados-total').innerText = invitadosTotales;
 
@@ -230,7 +206,7 @@ async function cargarContadoresTotales() {
 }
 
 // ==========================================
-// 5. CUENTA ATRÁS PARA EL 15 DE MAYO 2026
+// 5. CUENTA ATRÁS PARA EL EVENTO (15 de Mayo 2026, 23:45h)
 // ==========================================
 function actualizarCuentaAtras() {
     const fechaEvento = new Date('May 15, 2026 23:45:00').getTime();
@@ -254,11 +230,40 @@ function actualizarCuentaAtras() {
 }
 
 // ==========================================
+// 6. RASTREO DE DESCARGAS DE PDF
+// ==========================================
+async function registrarDescarga() {
+    try {
+        let userIP = "Desconocida / Oculta";
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            userIP = ipData.ip;
+        } catch (error) { console.warn("IP bloqueada"); }
+
+        const datosDescarga = {
+            action: "log_download",
+            archivo: "Autorizacion_Menores_Malamadre",
+            ip: userIP,
+            device: navigator.userAgent
+        };
+
+        // Lo enviamos de forma silenciosa
+        fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(datosDescarga)
+        });
+    } catch (error) {
+        console.warn("No se pudo registrar la descarga.");
+    }
+}
+
+// ==========================================
 // INICIALIZACIÓN AL CARGAR LA PÁGINA
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    registrarVisita();           // Registra la entrada (IP/Device)
-    cargarContadoresTotales();    // Calcula estadísticas del Excel
-    setInterval(actualizarCuentaAtras, 1000); // Inicia el reloj
+    registrarVisita();           
+    cargarContadoresTotales();    
+    setInterval(actualizarCuentaAtras, 1000); 
     actualizarCuentaAtras();
 });

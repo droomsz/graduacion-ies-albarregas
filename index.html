@@ -21,33 +21,23 @@
                 <div><span id="minutes">00</span><p>Minutos</p></div>
                 <div><span id="seconds">00</span><p>Segundos</p></div>
             </div>
-            <p style="margin-top: 15px; font-weight: bold; color: #d4af37;">📍 Celebración en: MalaMadre (C. Holguín, 32)</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=MalaMadre+The+Club+Merida&query_place_id=ChIJq6rWtcEmFA0RQYX-LqiF8_8" target="_blank" class="btn-location">📍 ¿Cómo llegar?</a>
+            <p style="margin-top: 15px; font-weight: bold; color: #d4af37;">📍 Celebración en: Sala MalaMadre</p>
+            <a href="https://maps.app.goo.gl/34zC9F7f9kC8k8Uv8" target="_blank" class="btn-location">📍 ¿Cómo llegar?</a>
         </section>
+
         <section class="section-card">
             <div class="search-box">
                 <p style="margin-bottom: 15px; color:#aaa;">Verifica tu pago y el de tus invitados.</p>
-                <p style="margin-bottom: 10px; font-size: 0.9rem; color: #aaa;">Puede ser que las tíldes en tu nombre no estén puestas correctamente, prueba distintas maneras.</p>
                 <input type="text" id="nombreAlumno" placeholder="Tu nombre o apellidos...">
                 <button onclick="buscarAlumno()">Buscar Pago</button>
             </div>
             <div id="resultado" class="resultado-container"></div>
         </section>
-        <section class="download-section">
-    <div class="download-card">
-        <div class="download-info">
-            <h3>📄 Autorización de Menores</h3>
-            <p>Si tienes 16 o 17 años, es obligatorio entregar este documento firmado en la puerta de MalaMadre junto a la fotocopia del DNI de tu tutor. [cite: 1, 2, 8, 20]</p>
-        </div>
-        <a href="autorizacion-menores.pdf" download="Autorizacion_IES_Albarregas_2026.pdf" class="btn-download">
-            Descargar PDF
-        </a>
-    </div>
-        </section>
+
         <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
 
         <section class="whatsapp-section">
-            <h2><span>📱</span> Solicitud de acceso</h2>
+            <h2><span>📱</span> Solicitud de acceso a WhatsApp</h2>
             <p>Verifica tu identidad en la lista oficial para poder dejar tu número.</p>
             
             <div id="wsPaso1" class="whatsapp-inputs">
@@ -59,46 +49,55 @@
             <div id="wsPaso2" class="whatsapp-inputs" style="display: none; margin-top: 15px; border-top: 1px dashed #444; padding-top: 15px;">
                 <p id="wsNombreConfirmado" style="color: #25D366; font-weight: bold; margin-bottom: 5px;"></p>
                 <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 10px;">Identidad confirmada. Ahora ingresa tu teléfono:</p>
-                
                 <input type="tel" id="wsTelefonoPúblico" placeholder="Número de teléfono (Ej: 600123456)">
                 <button onclick="enviarWhatsAppPublico()" class="btn-whatsapp" id="btnEnviarWs">Guardar mi número</button>
                 <p id="wsStatusMsgPúblico" class="whatsapp-status"></p>
             </div>
         </section>
-        <footer class="footer-stats">
-            
-            <div class="stats-block paid-block">
-                <h3>✅ CONFIRMADOS</h3>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <p>PERSONAS TOTALES</p>
-                        <span id="pagados-personas-total">...</span>
-                    </div>
-                    <div class="stat-item">
-                        <p>INVITADOS PAGADOS</p>
-                        <span id="pagados-invitados-total">...</span>
-                    </div>
+
+        <section class="download-section">
+            <div class="download-card">
+                <div class="download-info">
+                    <h3>📄 Autorización de Menores</h3>
+                    <p>Si tienes 16 o 17 años, es obligatorio entregar este documento firmado en la puerta junto a la fotocopia del DNI de tu tutor.</p>
                 </div>
+                <a href="autorizacion-menores.pdf" download="Autorizacion_IES_Albarregas_2026.pdf" class="btn-download" onclick="registrarDescarga()">
+                    Descargar PDF
+                </a>
             </div>
-
-            <div class="stats-separator"></div>
-
-            <div class="stats-block general-block">
-                <h3>📊 LISTA GENERAL</h3>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <p>PERSONAS EN LISTA</p>
-                        <span id="general-personas-total">...</span>
-                    </div>
-                    <div class="stat-item">
-                        <p>INVITADOS TOTALES</p>
-                        <span id="general-invitados-total">...</span>
-                    </div>
-                </div>
-            </div>
-
-        </footer>
+        </section>
     </div>
+
+    <footer class="footer-stats">
+        <div class="stats-block paid-block">
+            <h3>✅ CONFIRMADOS (PAGADOS)</h3>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <p>PERSONAS TOTALES</p>
+                    <span id="pagados-personas-total">...</span>
+                </div>
+                <div class="stat-item">
+                    <p>INVITADOS PAGADOS</p>
+                    <span id="pagados-invitados-total">...</span>
+                </div>
+            </div>
+        </div>
+        <div class="stats-separator"></div>
+        <div class="stats-block general-block">
+            <h3>📊 LISTA GENERAL (TOTALES)</h3>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <p>PERSONAS EN LISTA</p>
+                    <span id="general-personas-total">...</span>
+                </div>
+                <div class="stat-item">
+                    <p>INVITADOS TOTALES</p>
+                    <span id="general-invitados-total">...</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
 </body>
 </html>
