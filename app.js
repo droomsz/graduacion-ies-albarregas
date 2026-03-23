@@ -5,7 +5,19 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbyrDRD553jRvrBqagafMSnj
 let nombreVerificadoParaWhatsApp = "";
 
 // ==========================================
-// 1. RASTREADOR DE VISITAS (A PRUEBA DE BLOQUEADORES)
+// NUEVA FUNCIÓN: DETECTOR DE PAGOS BLINDADO
+// ==========================================
+function esPagado(valor) {
+    if (valor === true) return true;
+    if (typeof valor === 'string') {
+        const v = valor.trim().toUpperCase();
+        return v === 'TRUE' || v === 'VERDADERO' || v === 'V' || v === 'SÍ' || v === 'SI';
+    }
+    return false;
+}
+
+// ==========================================
+// 1. RASTREADOR DE VISITAS
 // ==========================================
 async function registrarVisita() {
     let userIP = "Desconocida / Oculta";
@@ -14,17 +26,17 @@ async function registrarVisita() {
         const ipData = await ipRes.json();
         userIP = ipData.ip;
     } catch (error) {
-        console.warn("IP bloqueada por privacidad, pero registramos la entrada.");
+        console.warn("IP bloqueada por privacidad.");
     }
 
     try {
         const datosVisita = { action: "log_visit", ip: userIP, device: navigator.userAgent };
         fetch(API_URL, { method: 'POST', body: JSON.stringify(datosVisita) });
-    } catch (error) { console.warn("No se pudo conectar con el Excel de Visitas."); }
+    } catch (error) { console.warn("No se pudo conectar con el Excel."); }
 }
 
 // ==========================================
-// 2. BUSCADOR DE ALUMNOS Y PAGOS (ANTI-CACHÉ)
+// 2. BUSCADOR DE ALUMNOS Y PAGOS
 // ==========================================
 async function buscarAlumno() {
     const inputOriginal = document.getElementById('nombreAlumno').value.trim();
@@ -48,7 +60,7 @@ async function buscarAlumno() {
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const ipData = await ipRes.json();
             userIP = ipData.ip;
-        } catch (e) { console.warn("Error IP en búsqueda"); }
+        } catch (e) {}
         
         const userDevice = navigator.userAgent;
         let estadoBusqueda = "No encontrado";
@@ -64,11 +76,13 @@ async function buscarAlumno() {
             if (nombreAlumno.toLowerCase().includes(inputBuscar) && nombreAlumno.trim() !== "") {
                 encontrado = true;
                 estadoBusqueda = "Encontrado (Alumno)";
-                const pagadoAlumno = fila["PAGADO ALUMNO"] === true ? '✅ Pagada' : '❌ Pendiente';
+                const haPagado = esPagado(fila["PAGADO ALUMNO"]);
+                const pagadoTexto = haPagado ? '✅ Pagada' : '❌ Pendiente';
+                
                 htmlResultado = `
                     <div class="card">
                         <h3>🎓 ${nombreAlumno}</h3>
-                        <p style="margin-top:10px;"><strong>Tu entrada:</strong> <span class="${fila["PAGADO ALUMNO"] === true ? 'estado-pagado' : 'estado-pendiente'}">${pagadoAlumno}</span></p>
+                        <p style="margin-top:10px;"><strong>Tu entrada:</strong> <span class="${haPagado ? 'estado-pagado' : 'estado-pendiente'}">${pagadoTexto}</span></p>
                     </div>`;
                 break;
             }
@@ -77,12 +91,14 @@ async function buscarAlumno() {
                 if (nombre.toLowerCase().includes(inputBuscar) && nombre.trim() !== "") {
                     encontrado = true;
                     estadoBusqueda = `Encontrado (Invitado de ${nombreAlumno})`;
-                    const pagado = pago === true ? '✅ Pagada' : '❌ Pendiente';
+                    const haPagadoInv = esPagado(pago);
+                    const pagadoTexto = haPagadoInv ? '✅ Pagada' : '❌ Pendiente';
+                    
                     htmlResultado = `
                         <div class="card" style="border-left: 5px solid #25D366;">
                             <h3>🎟️ Invitado: ${nombre}</h3>
                             <p>Te invita: <span style="color:#d4af37;">${nombreAlumno}</span></p>
-                            <p style="margin-top:10px;"><strong>Invitación:</strong> <span class="${pago === true ? 'estado-pagado' : 'estado-pendiente'}">${pagado}</span></p>
+                            <p style="margin-top:10px;"><strong>Invitación:</strong> <span class="${haPagadoInv ? 'estado-pagado' : 'estado-pendiente'}">${pagadoTexto}</span></p>
                         </div>`;
                     return true;
                 }
@@ -100,7 +116,7 @@ async function buscarAlumno() {
         });
 
         if (encontrado) resultadoDiv.innerHTML = htmlResultado;
-        else resultadoDiv.innerHTML = '<p style="color: #f44336;">No encontrado. Prueba con nombre y primer apellido.</p>';
+        else resultadoDiv.innerHTML = '<p style="color: #f44336;">No encontrado. Revisa tu nombre.</p>';
 
     } catch (error) {
         resultadoDiv.innerHTML = '<p style="color: #f44336;">Error de conexión.</p>';
@@ -186,13 +202,13 @@ async function cargarContadoresTotales() {
         datos.forEach(fila => {
             if (fila["NOMBRE"]?.trim()) {
                 alumnosTotales++;
-                if (fila["PAGADO ALUMNO"] === true) alumnosPagados++;
+                if (esPagado(fila["PAGADO ALUMNO"])) alumnosPagados++;
             }
             [1, 2, 3].forEach(n => {
                 const inv = fila[`INVITADO ${n}`];
                 if (inv && inv.toString().trim() !== "") {
                     invitadosTotales++;
-                    if (fila[`PAGADO INV ${n}`] === true) invitadosPagados++;
+                    if (esPagado(fila[`PAGADO INV ${n}`])) invitadosPagados++;
                 }
             });
         });
@@ -206,7 +222,7 @@ async function cargarContadoresTotales() {
 }
 
 // ==========================================
-// 5. CUENTA ATRÁS PARA EL EVENTO (15 de Mayo 2026, 23:45h)
+// 5. CUENTA ATRÁS (15 MAYO 2026)
 // ==========================================
 function actualizarCuentaAtras() {
     const fechaEvento = new Date('May 15, 2026 23:45:00').getTime();
@@ -241,26 +257,11 @@ async function registrarDescarga() {
             userIP = ipData.ip;
         } catch (error) { console.warn("IP bloqueada"); }
 
-        const datosDescarga = {
-            action: "log_download",
-            archivo: "Autorizacion_Menores_Malamadre",
-            ip: userIP,
-            device: navigator.userAgent
-        };
-
-        // Lo enviamos de forma silenciosa
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(datosDescarga)
-        });
-    } catch (error) {
-        console.warn("No se pudo registrar la descarga.");
-    }
+        const datosDescarga = { action: "log_download", archivo: "Autorizacion_Menores_Malamadre", ip: userIP, device: navigator.userAgent };
+        fetch(API_URL, { method: 'POST', body: JSON.stringify(datosDescarga) });
+    } catch (error) { console.warn("Error en registro de descarga."); }
 }
 
-// ==========================================
-// INICIALIZACIÓN AL CARGAR LA PÁGINA
-// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
     registrarVisita();           
     cargarContadoresTotales();    

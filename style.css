@@ -1,5 +1,35 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background-color: #121212; color: #ffffff; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+/* --- NUEVO FONDO ANIMADO --- */
+/* --- FONDO LÍQUIDO MORADO/NEGRO --- */
+body { 
+    /* Fondo base negro profundo */
+    background-color: #05020a; 
+    
+    /* 4 "manchas" de colores líquidos (morados oscuros, violetas y negros) */
+    background-image: 
+        radial-gradient(circle at 0% 0%, rgba(45, 15, 80, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(15, 5, 30, 0.9) 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, rgba(60, 20, 100, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 0% 100%, rgba(10, 10, 15, 1) 0%, transparent 50%);
+    
+    /* Hacemos el lienzo el doble de grande para que tenga espacio para moverse */
+    background-size: 200% 200%; 
+    animation: efectoLiquido 18s ease-in-out infinite alternate;
+    
+    color: #ffffff; 
+    line-height: 1.6; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
+/* El motor del líquido: mueve las manchas de forma fluida y diagonal */
+@keyframes efectoLiquido {
+    0% { background-position: 0% 0%; }
+    33% { background-position: 100% 0%; }
+    66% { background-position: 0% 100%; }
+    100% { background-position: 100% 100%; }
+}
 .container { max-width: 800px; margin: 40px auto; padding: 20px; flex-grow: 1; }
 header { text-align: center; margin-bottom: 40px; }
 header h1 { color: #d4af37; font-size: 2.5rem; letter-spacing: 1px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
