@@ -28,6 +28,7 @@
         <section class="section-card">
             <div class="search-box">
                 <p style="margin-bottom: 15px; color:#aaa;">Verifica tu pago y el de tus invitados.</p>
+                <p style="margin-bottom: 10px; font-size: 0.9rem; color: #aaa;">Puede ser que las tíldes en tu nombre no estén puestas correctamente, prueba distintas maneras.</p>
                 <input type="text" id="nombreAlumno" placeholder="Tu nombre o apellidos...">
                 <button onclick="buscarAlumno()">Buscar Pago</button>
             </div>
@@ -55,7 +56,39 @@
                 <p id="wsStatusMsgPúblico" class="whatsapp-status"></p>
             </div>
         </section>
+        <footer class="footer-stats">
+            
+            <div class="stats-block paid-block">
+                <h3>✅ CONFIRMADOS</h3>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <p>PERSONAS TOTALES</p>
+                        <span id="pagados-personas-total">...</span>
+                    </div>
+                    <div class="stat-item">
+                        <p>INVITADOS PAGADOS</p>
+                        <span id="pagados-invitados-total">...</span>
+                    </div>
+                </div>
+            </div>
 
+            <div class="stats-separator"></div>
+
+            <div class="stats-block general-block">
+                <h3>📊 LISTA GENERAL</h3>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <p>PERSONAS EN LISTA</p>
+                        <span id="general-personas-total">...</span>
+                    </div>
+                    <div class="stat-item">
+                        <p>INVITADOS TOTALES</p>
+                        <span id="general-invitados-total">...</span>
+                    </div>
+                </div>
+            </div>
+
+        </footer>
     </div>
     <script src="app.js"></script>
 </body>

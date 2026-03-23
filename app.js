@@ -217,3 +217,66 @@ function actualizarCuentaAtras() {
 // Actualizar cada segundo
 setInterval(actualizarCuentaAtras, 1000);
 actualizarCuentaAtras(); // Carga inicial
+async function cargarContadoresTotales() {
+    try {
+        const respuesta = await fetch(API_URL);
+        const datos = await respuesta.json();
+
+        // Variables de conteo
+        let alumnosTotales = 0;
+        let alumnosPagados = 0;
+        let invitadosTotales = 0;
+        let invitadosPagados = 0;
+
+        datos.forEach(fila => {
+            // 1. CONTEO DE ALUMNOS
+            if (fila["NOMBRE"] && fila["NOMBRE"].toString().trim() !== "") {
+                alumnosTotales++;
+                if (fila["PAGADO ALUMNO"] === true) {
+                    alumnosPagados++;
+                }
+            }
+            
+            // 2. CONTEO DE INVITADOS
+            const chequearInv = (num) => {
+                const nombre = fila[`INVITADO ${num}`];
+                const pagado = fila[`PAGADO INV ${num}`];
+                if (nombre && nombre.toString().trim() !== "") {
+                    invitadosTotales++;
+                    if (pagado === true) {
+                        invitadosPagados++;
+                    }
+                }
+            };
+
+            chequearInv(1);
+            chequearInv(2);
+            chequearInv(3);
+        });
+
+        // --- CÁLCULOS FINALES ---
+        
+        // Bloque Pagados (Confirmados)
+        const pagadosPersonasTotal = alumnosPagados + invitadosPagados;
+        const pagadosInvitadosTotal = invitadosPagados;
+
+        // Bloque General (Lista completa)
+        const generalPersonasTotal = alumnosTotales + invitadosTotales;
+        const generalInvitadosTotal = invitadosTotales;
+
+        // --- INYECTAR EN EL HTML ---
+        
+        // Pagados
+        document.getElementById('pagados-personas-total').innerText = pagadosPersonasTotal;
+        document.getElementById('pagados-invitados-total').innerText = pagadosInvitadosTotal;
+
+        // General
+        document.getElementById('general-personas-total').innerText = generalPersonasTotal;
+        document.getElementById('general-invitados-total').innerText = generalInvitadosTotal;
+
+    } catch (error) {
+        console.error("Error en las estadísticas:", error);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', cargarContadoresTotales);

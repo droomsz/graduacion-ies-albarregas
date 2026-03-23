@@ -259,3 +259,218 @@ button:hover {
     border-radius: 10px;
     border: 1px solid rgba(37, 211, 102, 0.2);
 }
+/* --- ESTILOS DEL CONTADOR TOTAL --- */
+.footer-stats {
+    margin-top: 50px;
+    padding: 25px;
+    background: linear-gradient(145deg, #1a1a1a, #121212);
+    border-top: 2px solid #d4af37;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.stats-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stats-content p {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #d4af37;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stats-content span {
+    color: white;
+    font-size: 1.4rem;
+    margin-left: 5px;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.stats-divider {
+    width: 2px;
+    height: 30px;
+    background-color: #333;
+}
+
+@media (max-width: 600px) {
+    .stats-content { flex-direction: column; gap: 10px; }
+    .stats-divider { display: none; }
+}
+/* --- ESTILOS DEL CONTADOR TOTAL ACTUALIZADOS --- */
+.footer-stats {
+    margin-top: 50px;
+    padding: 30px 15px;
+    background: linear-gradient(145deg, #1a1a1a, #121212);
+    border-top: 2px solid #d4af37;
+    border-radius: 25px 25px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.stats-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item p {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #d4af37;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.stat-item span {
+    color: white;
+    font-size: 1.6rem;
+    font-weight: bold;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.stats-divider {
+    width: 1px;
+    height: 40px;
+    background-color: rgba(212, 175, 55, 0.2);
+}
+
+@media (max-width: 768px) {
+    .stats-content { flex-direction: column; gap: 25px; }
+    .stats-divider { display: none; }
+    .footer-stats { border-radius: 0; }
+}
+/* --- ESTILOS DEL CONTADOR GLOBAL --- */
+.footer-stats {
+    margin-top: 50px;
+    padding: 35px 10px;
+    background: linear-gradient(145deg, #1a1a1a, #121212);
+    border-top: 3px solid #d4af37;
+    border-radius: 30px 30px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+}
+
+.stats-content {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+}
+
+.total-highlight span {
+    color: #d4af37 !important;
+    font-size: 2rem !important;
+}
+
+.stat-item p {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #888;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.stat-item span {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stats-divider {
+    width: 1px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .stats-content { 
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .stats-divider { display: none; }
+    .stat-item { min-width: 0; }
+}
+/* --- NUEVOS ESTILOS ESTADÍSTICAS --- */
+.footer-stats {
+    margin-top: 50px;
+    padding: 30px 15px;
+    background: #111;
+    border-top: 3px solid #d4af37;
+    border-radius: 30px 30px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+}
+
+.stats-block h3 {
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.paid-block h3 { color: #25D366; } /* Verde WhatsApp para pagados */
+.general-block h3 { color: #d4af37; } /* Dorado para general */
+
+.stats-row {
+    display: flex;
+    justify-content: space-evenly;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.stat-item { text-align: center; }
+
+.stat-item p {
+    font-size: 0.7rem;
+    color: #888;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.stat-item span {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+}
+
+.paid-block .stat-item span { color: #25D366; } /* Cifras en verde */
+.general-block .stat-item span { color: #fff; } /* Cifras en blanco */
+
+.stats-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    width: 80%;
+}
+
+@media (max-width: 600px) {
+    .stats-row { flex-direction: row; gap: 10px; }
+    .stat-item span { font-size: 1.4rem; }
+}
